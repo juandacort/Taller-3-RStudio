@@ -1,0 +1,157 @@
+# Taller 3 bioestadistica
+# Juan david cortes 
+# 201423358
+
+
+
+
+# Punto 1 =
+library(readxl)
+punto1 <- read_excel("~/Taller 3/Punto 1/Punto1.xlsx")
+View(punto1) # ver tabla del punto 1
+
+# (a)	Construya el grafico de dispersion de estas parejas de datos.  
+
+# (b)	Construya el modelo de regresiÃ³n lineal y muestre el valor de R2 (coeficiente de determinacion). Dar una explicacion de este valor y determine si el modelo de regresion lineal es un buen modelo.  
+
+# (c)	Construya el modelo de regresiÃ³n exponencial y muestre el valor de R2 (coeficiente de determinacion). Dar una explicacion de este valor y determine si el modelo de regresion exponencial es un buen modelo. ¿Cual de los dos modelos es mejor?  
+
+#(a)
+
+attach(punto1)
+names(punto1)
+
+plot(punto1$numero_horas_trabajadas ~ punto1$numero_pacientes, main="Gráfico de dispersion de nÃ¹mero pacientes vs numero horas trabajadas",
+     pch = 19,         
+     cex = 1.1,        
+     col = "#cc0001",
+     xlab="numero_pacientes", ylab="numero_horas_trabajadas")
+
+
+# (b)
+
+# se crea una linea de regresion
+
+abline(lm(numero_horas_trabajadas ~ numero_pacientes,
+          col = "darkred", 
+          lwd = 4))
+
+# correlacion de determinacion (R2)
+
+mod1 <- lm(numero_horas_trabajadas ~ numero_pacientes, data=punto1)
+
+summary(mod1) #ver coeficiente de determinacion donde aparece como "Multiple R-squared", este dio igual a 0,9832 que se puede decir que hay una muy fuerte relacion entre los valores estudiados.
+
+
+#(c) 
+
+
+#Ajuste exponencial:
+tras<-log(punto1$numero_horas_trabajadas)
+
+teg<-lm(tras ~ numero_pacientes,data=punto1)
+
+summary(teg) 
+# se observa el coeficiente de determinacion donde aparece como "Multiple R-squared", dando 0.9973, siendo muy fuerte y mejor que el de la regresion linear, esto quiere decir que los datos se acoplan mas a una funcion exponenecial
+
+
+plot(log(punto1$numero_horas_trabajadas) ~ punto1$numero_pacientes,xlab='numero pacientes',ylab='numero horas trabajadas',
+     main='Grafico exponencial de numero pacientes vs numero horas trabajadas')
+
+
+curve(expr = (teg$coefficient[1])*exp(teg$coefficient[2]*x),add=TRUE,col="orange")
+
+exp(teg$coefficient)
+
+
+
+#Punto 2 
+
+#Se tomó una muestra aleatoria de 200 pacientes de 3 especialidades y se les preguntó por la percepción de calidad del servicio y la especialidad que requirió, encontrando: 
+
+#se añaden los valores a la plataforma R
+punto_2 <- matrix(c(18, 8, 5, 38, 23, 12, 45, 34, 17), ncol = 3) # Tabla con los valores observados
+
+colnames(punto_2) = c("Neurologia", "Ortopedia", "pediatria") # Nombres para las columnas.
+rownames(punto_2) = c("alta", "media", "baja") # Nombres para las filas.
+punto_2 # Tabla completa.
+
+# Use una significancia de 0.02 para determinar si las proporciones de los diferentes niveles de percepción de calidad son homogéneas en las 3 especialidades consultadas. Para esto, plantee las hipótesis, calcule el estadístico adecuado y concluya.)
+
+
+#se realiza la hipotesis para la prueba de homogeneidad:
+  #Ho: las proporciones de cada categorìa son iguales a lo largo de las diferentes poblaciones.
+  #Ha: Hay al menos una proporcion en difernecia.
+
+#estadistico de chi-cuadrado
+punto2_chi_null <- qchisq(.98, 4) # Valor chi-cuadrado de zona critica y los grados de libertad.
+
+
+# Prueba de chi-cuadrado de "punto2"
+punto2_chi <- chisq.test(punto_2) # Chi-cuadrado de prueba.
+
+punto2_chi # Chi-cuadrado de prueba.
+punto2_chi_null # Chi-cuadrado de zona critica.
+
+rm(punto_2_tabla, punto_2_chi_null, punto_2_chi)
+
+
+#(3)
+
+# a) Determinar si hay evidencia suficiente para afirmar que el tiempo de actividad física en niños es mayor que en adultos
+
+ninos <- rnorm(50, mean = 70, sd = 4.5)
+adultos <- rnorm(31, mean = 30, sd = 3.2)
+#se utiliza una significancia de 0.05
+
+t.test(ninos, adultos, conf.level = .95, alternative = "greater") #Ha: las diferencias en las medias son mayoreas a 0. por ende se rechaza la hipotesis nula (Ho) ya que se demuestra que hay evidencia suficiente que comprueba que las medias son > 0
+
+# b) determinar si estamos frente a evidencia de que la diferencia es aún mayor de lo que dice el informe.
+
+pacman::p_load(BSDA) # Contiene una funcion z.test para pruebas de hipotesis usando la distribucion Z.
+
+hombres <- rnorm(125, mean = 71 , sd = 4.5)
+mujeres <- rnorm(215, mean = 59.8, sd = 3.2)
+
+
+z.test(hombres, mu = 68, sigma.x = 8.1, conf.level = .97, alternative = "greater") #si estamos en evidencia de que es mayor 
+z.test(mujeres, mu = 61, sigma.x = 6.4, conf.level = .97, alternative = "greater") #no estamos en evidencia de que es mayor
+
+#parametros "mu" y "sigma.x" corresponde a la muestra y desviación de cada poblacion.
+
+
+#(4)
+
+#se importa la tabla de datos de adultos y niños:
+
+library(readxl)
+adultos <- read_excel("~/Taller 3/punto 4/adultos.xlsx")
+View(adultos)
+
+library(readxl)
+ninos <- read_excel("~/Taller 3/punto 4/ninos.xlsx")
+View(ninos)
+
+
+#se convierte el set de datos en una tabla de frecuencias
+adulttable <- table(adultos)
+adulttable
+
+ninostable <- table(ninos)
+ninostable
+
+prop.test(c(36,33), c(50,40), conf.level = .99) # Ho: las proporciones son similares; Ha: las proporciones son diferentes
+# se puede concluir que no se puede rechazar la Ho, por edne se puede afirmar que als proporciones de felicidad de adultos y niños son similares/aproximadamente iguales.
+
+#(5)
+#se importan los datos
+library(readxl)
+punto5 <- read_excel("~/Taller 3/punto5/punto5.xlsx")
+View(punto5)
+# se calcula la prueba t-test para diferencia de medias Emparejadas/Dependientes con una significacia del 0.02
+
+t.test(punto5$tiempo_despues, punto5$tiempo_antes, paired = TRUE, conf.level = .98)
+
+
+
+
